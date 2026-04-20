@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-mono, monospace); background: transparent; color: var(--color-text-primary); }
+
+.blueprint { padding: 0; }
+
+.nav { display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 0; overflow-x: auto; }
+.nav-btn {
+  padding: 10px 16px; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  border: none; background: transparent; color: var(--color-text-secondary); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -0.5px; white-space: nowrap; transition: all 0.15s;
+  font-family: var(--font-mono, monospace);
+}
+.nav-btn.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); }
+.nav-btn:hover:not(.active) { color: var(--color-text-primary); background: var(--color-background-secondary); }
+
+.panel { display: none; padding: 20px 0; }
+.panel.active { display: block; }
+
+/* PILLAR 1 STYLES */
+.stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--color-border-tertiary); border: 0.5px solid var(--color-border-tertiary); }
+.stack-cell {
+  background: var(--color-background-primary); padding: 14px 12px;
+}
+.stack-layer { font-size: 9px; letter-spacing: 0.1em; color: var(--color-text-tertiary); text-transform: uppercase; margin-bottom: 4px; }
+.stack-tool { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.stack-why { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; }
+
+.asset-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--color-border-tertiary); border: 0.5px solid var(--color-border-tertiary); margin-top: 16px; }
+.asset-col { background: var(--color-background-primary); padding: 14px 12px; }
+.asset-head { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 10px; }
+.asset-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+.asset-row:last-child { border-bottom: none; }
+.asset-label { color: var(--color-text-secondary); }
+.badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 500; }
+.badge-g { background: var(--color-background-success); color: var(--color-text-success); }
+.badge-r { background: var(--color-background-danger); color: var(--color-text-danger); }
+.badge-y { background: var(--color-background-warning); color: var(--color-text-warning); }
+
+/* PILLAR 2 STYLES */
+.interaction-block { border: 0.5px solid var(--color-border-tertiary); margin-bottom: 16px; }
+.ib-head {
+  padding: 10px 14px; background: var(--color-background-secondary);
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-secondary);
+  display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+.ib-head-title { color: var(--color-text-primary); font-weight: 500; }
+.ib-body { padding: 14px; }
+.code-block {
+  background: var(--color-background-tertiary); border: 0.5px solid var(--color-border-tertiary);
+  padding: 12px 14px; font-size: 11px; line-height: 1.7; color: var(--color-text-secondary);
+  overflow-x: auto; white-space: pre; font-family: var(--font-mono, monospace); margin: 10px 0;
+}
+.code-block .kw { color: var(--color-text-info); }
+.code-block .str { color: var(--color-text-success); }
+.code-block .cm { color: var(--color-text-tertiary); font-style: italic; }
+.code-block .fn { color: var(--color-text-warning); }
+.prose { font-size: 12px; line-height: 1.7; color: var(--color-text-secondary); margin-bottom: 10px; }
+
+/* PILLAR 3 STYLES */
+.tree-wrap { position: relative; overflow-x: auto; padding-bottom: 8px; }
+.tree-svg { min-width: 600px; }
+
+.flow-steps { display: flex; gap: 1px; background: var(--color-border-tertiary); border: 0.5px solid var(--color-border-tertiary); margin-top: 16px; }
+.flow-step { background: var(--color-background-primary); padding: 12px 14px; flex: 1; min-width: 100px; }
+.flow-num { font-size: 20px; font-weight: 500; color: var(--color-text-tertiary); line-height: 1; margin-bottom: 6px; }
+.flow-name { font-size: 11px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+.flow-desc { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; }
+
+/* PILLAR 4 STYLES */
+.secret-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 500px) { .secret-grid { grid-template-columns: 1fr; } }
+
+.secret-card { border: 0.5px solid var(--color-border-tertiary); }
+.secret-card-head { padding: 10px 14px; background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); font-weight: 500; }
+.secret-card-body { padding: 14px; }
+
+.grain-preview {
+  height: 80px; position: relative; background: #111;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px; overflow: hidden;
+}
+.grain-preview::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+  pointer-events: none; mix-blend-mode: overlay;
+}
+.grain-label { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; text-transform: uppercase; position: relative; z-index: 1; }
+
+.float-preview {
+  height: 100px; position: relative; overflow: hidden;
+  background: var(--color-background-secondary); display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+}
+.float-obj {
+  width: 40px; height: 40px; background: var(--color-text-primary); opacity: 0.9;
+  animation: organicFloat 4s ease-in-out infinite;
+}
+@keyframes organicFloat {
+  0%   { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+  25%  { transform: translate(8px, -12px) rotate(5deg) scale(1.04); }
+  50%  { transform: translate(-5px, -20px) rotate(-3deg) scale(0.97); }
+  75%  { transform: translate(12px, -10px) rotate(7deg) scale(1.02); }
+  100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+}
+
+.cursor-preview {
+  height: 80px; position: relative; overflow: hidden;
+  background: #000; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px; cursor: none;
+}
+.cursor-demo {
+  width: 20px; height: 20px; border-radius: 50%; background: white;
+  mix-blend-mode: difference; position: absolute;
+  animation: cursorDemo 3s ease-in-out infinite; pointer-events: none;
+}
+@keyframes cursorDemo {
+  0%   { transform: translate(-40px, 0); }
+  50%  { transform: translate(40px, 10px); }
+  100% { transform: translate(-40px, 0); }
+}
+.cursor-text { color: white; font-size: 11px; letter-spacing: 0.1em; mix-blend-mode: normal; opacity: 0.5; }
+
+.section-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+
+.expand-btn { background: none; border: none; color: var(--color-text-tertiary); cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+</style>
+</head>
+<body>
+<div class="blueprint">
+  <div class="nav">
+    <button class="nav-btn active" onclick="showPanel('p1', this)">01 / Tech Stack</button>
+    <button class="nav-btn" onclick="showPanel('p2', this)">02 / Interactions</button>
+    <button class="nav-btn" onclick="showPanel('p3', this)">03 / Architecture</button>
+    <button class="nav-btn" onclick="showPanel('p4', this)">04 / Secret Sauce</button>
+  </div>
+
+  <!-- PANEL 1: TECH STACK -->
+  <div id="p1" class="panel active">
+    <div class="section-label">Performance-First Stack</div>
+    <div class="stack-grid">
+      <div class="stack-cell">
+        <div class="stack-layer">Framework</div>
+        <div class="stack-tool">Next.js 15</div>
+        <div class="stack-why">App Router + PPR for shell-first streaming. Hero loads in ~80ms.</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-layer">Motion</div>
+        <div class="stack-tool">Framer Motion 11</div>
+        <div class="stack-why">layout prop for toggle transitions. useScroll for sticky gallery. LazyMotion bundle splits to ~18kb.</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-layer">Scroll</div>
+        <div class="stack-tool">Lenis + GSAP</div>
+        <div class="stack-why">Lenis normalises Mac/Windows inertia. GSAP ScrollTrigger pins the horizontal gallery section.</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-layer">Styling</div>
+        <div class="stack-tool">Tailwind CSS 4</div>
+        <div class="stack-why">JIT engine with CSS variables. Brutalist oversized type via arbitrary values [font-size:clamp(4rem,10vw,9rem)].</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-layer">3D / Lottie</div>
+        <div class="stack-tool">Three.js / @lottiefiles</div>
+        <div class="stack-why">Lottie for icon micro-animations. Three.js only for hero orb — lazy loaded after LCP.</div>
+      </div>
+      <div class="stack-cell">
+        <div class="stack-layer">Deployment</div>
+        <div class="stack-tool">Vercel + Edge</div>
+        <div class="stack-why">ISR for testimonial content. Edge config for A/B on pricing toggle default state.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px" class="section-label">Asset Pipeline — Drop-Frame Prevention</div>
+    <div class="asset-compare">
+      <div class="asset-col">
+        <div class="asset-head">Use Case → Format</div>
+        <div class="asset-row"><span class="asset-label">Hero background</span><span class="badge badge-g">AVIF loop</span></div>
+        <div class="asset-row"><span class="asset-label">Project thumbnails</span><span class="badge badge-g">WebP + srcset</span></div>
+        <div class="asset-row"><span class="asset-label">Icon animations</span><span class="badge badge-g">Lottie JSON</span></div>
+        <div class="asset-row"><span class="asset-label">Ambient bg video</span><span class="badge badge-y">VP9 WebM</span></div>
+        <div class="asset-row"><span class="asset-label">3D floating asset</span><span class="badge badge-y">glTF lazy</span></div>
+        <div class="asset-row"><span class="asset-label">Raster photos</span><span class="badge badge-r">JPEG only</span></div>
+      </div>
+      <div class="asset-col">
+        <div class="asset-head">Performance Rule</div>
+        <div class="asset-row"><span class="asset-label">LCP image</span><span class="badge badge-g">fetchpriority="high"</span></div>
+        <div class="asset-row"><span class="asset-label">Below fold assets</span><span class="badge badge-g">loading="lazy"</span></div>
+        <div class="asset-row"><span class="asset-label">Video autoplay</span><span class="badge badge-g">muted + preload=none</span></div>
+        <div class="asset-row"><span class="asset-label">Three.js scene</span><span class="badge badge-y">dynamic import()</span></div>
+        <div class="asset-row"><span class="asset-label">Lottie player</span><span class="badge badge-y">IntersectionObserver</span></div>
+        <div class="asset-row"><span class="asset-label">Font loading</span><span class="badge badge-g">next/font + preload</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: INTERACTIONS -->
+  <div id="p2" class="panel">
+    <div class="section-label">The "RAMA Feel" — Interaction Logistics</div>
+
+    <div class="interaction-block">
+      <div class="ib-head" onclick="toggleBlock(this)">
+        <span class="ib-head-title">Sticky → Horizontal Scroll Gallery</span>
+        <button class="expand-btn">↕</button>
+      </div>
+      <div class="ib-body">
+        <p class="prose">The gallery section is <strong style="color:var(--color-text-primary)">pinned</strong> via GSAP ScrollTrigger while the inner track translates on the X axis. The scroll distance consumed equals the total horizontal track width minus one viewport width — so the user "uses up" exactly the right amount of vertical scroll to traverse every card. Framer Motion's <code style="font-family:var(--font-mono)">useScroll</code> reads the pinned container's progress (0→1) and <code style="font-family:var(--font-mono)">useTransform</code> maps it to pixels.</p>
+        <div class="code-block"><span class="cm">// StickyGallery.tsx</span>
+<span class="kw">const</span> containerRef = useRef(<span class="kw">null</span>);
+<span class="kw">const</span> { scrollYProgress } = <span class="fn">useScroll</span>({
+  target: containerRef,
+  offset: [<span class="str">"start start"</span>, <span class="str">"end end"</span>]
+});
+
+<span class="cm">// trackWidth = (cardWidth + gap) * numCards</span>
+<span class="kw">const</span> x = <span class="fn">useTransform</span>(
+  scrollYProgress,
+  [<span class="str">0</span>, <span class="str">1</span>],
+  [<span class="str">"0px"</span>, <span class="str">`-${trackWidth - viewportW}px`</span>]
+);
+
+<span class="cm">// Outer: height = trackWidth (consumes scroll budget)</span>
+<span class="cm">// Inner: position sticky, overflow hidden</span>
+<span class="cm">// Track: motion.div with x transform</span></div>
+        <p class="prose" style="margin-top:8px">The outer div height is set to <code style="font-family:var(--font-mono)">trackWidth + 100vh</code> — the extra viewport height gives the sticky panel time to settle before sliding begins. Each card also gets an individual <code style="font-family:var(--font-mono)">useTransform</code> with a slight parallax offset to create depth.</p>
+      </div>
+    </div>
+
+    <div class="interaction-block">
+      <div class="ib-head" onclick="toggleBlock(this)">
+        <span class="ib-head-title">Custom Cursor + mix-blend-mode: difference</span>
+        <button class="expand-btn">↕</button>
+      </div>
+      <div class="ib-body">
+        <div class="cursor-preview">
+          <span class="cursor-text">HOVER ZONE</span>
+          <div class="cursor-demo"></div>
+        </div>
+        <div class="code-block"><span class="cm">// CursorProvider.tsx (global, in layout.tsx)</span>
+<span class="kw">const</span> [pos, setPos] = <span class="fn">useState</span>({ x: 0, y: 0 });
+<span class="kw">const</span> [variant, setVariant] = <span class="fn">useState</span>(<span class="str">"default"</span>);
+
+<span class="cm">// CSS: position fixed, pointer-events none</span>
+<span class="cm">// mix-blend-mode: difference  ← KEY RULE</span>
+<span class="cm">// background: white → appears black on white bg</span>
+<span class="cm">// background: white → appears white on black bg</span>
+
+<span class="cm">// On interactive elements:</span>
+&lt;div <span class="fn">onMouseEnter</span>={() =&gt; <span class="fn">setVariant</span>(<span class="str">"project"</span>)}&gt;
+  <span class="cm">// cursor expands to 80px, shows "VIEW" label</span>
+&lt;/div&gt;</div>
+        <p class="prose" style="margin-top:8px">The cursor blob is always <code style="font-family:var(--font-mono)">background: white</code>. The <code style="font-family:var(--font-mono)">difference</code> blend mode inverts everything beneath it — so on a white section it becomes black, on a black hero it appears white. No JS color-detection needed.</p>
+      </div>
+    </div>
+
+    <div class="interaction-block">
+      <div class="ib-head" onclick="toggleBlock(this)">
+        <span class="ib-head-title">Service List Reveal + Text Line Stagger</span>
+        <button class="expand-btn">↕</button>
+      </div>
+      <div class="ib-body">
+        <div class="code-block"><span class="cm">// Staggered text reveal (splits by line)</span>
+<span class="kw">const</span> container = {
+  hidden: {},
+  show: { transition: { staggerChildren: <span class="str">0.07</span> } }
+};
+<span class="kw">const</span> line = {
+  hidden: { y: <span class="str">"110%"</span>, opacity: <span class="str">0</span> },
+  show:   { y: <span class="str">"0%"</span>,   opacity: <span class="str">1</span>,
+    transition: { duration: <span class="str">0.6</span>, ease: [<span class="str">0.16,1,0.3,1</span>] }
+  }
+};
+<span class="cm">// Wrap each text line in overflow:hidden clip</span>
+<span class="cm">// Trigger with whileInView + viewport.once</span>
+
+<span class="cm">// Service hover reveal:</span>
+<span class="kw">const</span> [hovered, setHovered] = <span class="fn">useState</span>(<span class="kw">null</span>);
+<span class="cm">// Non-hovered items: opacity 0.3 → brutal contrast</span>
+<span class="cm">// Hovered item: description slides in from left</span>
+<span class="cm">// AnimatePresence handles the exit cleanly</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: ARCHITECTURE -->
+  <div id="p3" class="panel">
+    <div class="section-label">Component Tree + Data Flow</div>
+    <div class="tree-wrap">
+      <svg class="tree-svg" viewBox="0 0 680 380" width="100%">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+
+        <!-- Root -->
+        <g class="node c-gray" onclick="sendPrompt('Explain the RootLayout component in detail')">
+          <rect x="260" y="10" width="160" height="38" rx="4" stroke-width="0.5"/>
+          <text class="th" x="340" y="29" text-anchor="middle" dominant-baseline="central">RootLayout</text>
+        </g>
+
+        <!-- Level 1 connectors -->
+        <line x1="340" y1="48" x2="340" y2="65" stroke="var(--color-border-secondary)" stroke-width="0.5" marker-end="url(#arr)"/>
+
+        <!-- CursorProvider -->
+        <g class="node c-purple" onclick="sendPrompt('How does CursorProvider work as a global context?')">
+          <rect x="240" y="65" width="200" height="38" rx="4" stroke-width="0.5"/>
+          <text class="th" x="340" y="84" text-anchor="middle" dominant-baseline="central">CursorProvider</text>
+        </g>
+        <line x1="340" y1="103" x2="340" y2="120" stroke="var(--color-border-secondary)" stroke-width="0.5" marker-end="url(#arr)"/>
+
+        <!-- Page sections row -->
+        <line x1="100" y1="120" x2="580" y2="120" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+        <!-- Vertical drops -->
+        <line x1="100" y1="120" x2="100" y2="137" stroke="var(--color-border-secondary)" stroke-width="0.5" marker-end="url(#arr)"/>
+        <line x1="240" y1="120" x2="240" y2="137" stroke="var(--color-border-secondary)" stroke-width="0.5" marker-end="url(#arr)"/>
+        <line x1="380" y1="120" x2="380" y2="137" stroke="var(--color-border-secondary)" stroke-width="0.5" marker-end="url(#arr)"/>
+        <line x1="520" y1="120" x2="520" y2="137" stroke="var(--color-border-secondary)" stroke-width="0.5" marker-end="url(#arr)"/>
+
+        <!-- Section boxes row 1 -->
+        <g class="node c-coral" onclick="sendPrompt('How should the Hero section handle the live Jakarta time?')">
+          <rect x="30" y="137" width="140" height="48" rx="4" stroke-width="0.5"/>
+          <text class="th" x="100" y="155" text-anchor="middle" dominant-baseline="central">HeroSection</text>
+          <text class="ts" x="100" y="172" text-anchor="middle">LiveClock · FloatingOrb</text>
+        </g>
+
+        <g class="node c-teal" onclick="sendPrompt('Explain the StickyGallery scroll logic in detail')">
+          <rect x="170" y="137" width="140" height="48" rx="4" stroke-width="0.5"/>
+          <text class="th" x="240" y="155" text-anchor="middle" dominant-baseline="central">StickyGallery</text>
+          <text class="ts" x="240" y="172" text-anchor="middle">useScroll · ProjectCard</text>
+        </g>
+
+        <g class="node c-amber" onclick="sendPrompt('How does TestimonialTabs manage state for instant switching?')">
+          <rect x="310" y="137" width="140" height="48" rx="4" stroke-width="0.5"/>
+          <text class="th" x="380" y="155" text-anchor="middle" dominant-baseline="central">TestimonialTabs</text>
+          <text class="ts" x="380" y="172" text-anchor="middle">Zustand · AnimatePresence</text>
+        </g>
+
+        <g class="node c-blue" onclick="sendPrompt('Explain the PricingToggle state management with Framer Motion layout prop')">
+          <rect x="450" y="137" width="140" height="48" rx="4" stroke-width="0.5"/>
+          <text class="th" x="520" y="155" text-anchor="middle" dominant-baseline="central">PricingToggle</text>
+          <text class="ts" x="520" y="172" text-anchor="middle">layout · layoutId</text>
+        </g>
+
+        <!-- Level 2 children -->
+        <line x1="100" y1="185" x2="100" y2="215" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+        <line x1="240" y1="185" x2="240" y2="215" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+        <line x1="380" y1="185" x2="380" y2="215" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+        <line x1="520" y1="185" x2="520" y2="215" stroke="var(--color-border-tertiary)" stroke-width="0.5" marker-end="url(#arr)"/>
+
+        <g class="node c-gray" onclick="sendPrompt('How does ServiceList implement the hover reveal animation?')">
+          <rect x="30" y="215" width="140" height="38" rx="4" stroke-width="0.5"/>
+          <text class="th" x="100" y="234" text-anchor="middle" dominant-baseline="central">ServiceList</text>
+        </g>
+
+        <g class="node c-gray" onclick="sendPrompt('What data does the ProjectCard component receive?')">
+          <rect x="170" y="215" width="140" height="38" rx="4" stroke-width="0.5"/>
+          <text class="th" x="240" y="234" text-anchor="middle" dominant-baseline="central">ProjectCard</text>
+        </g>
+
+        <g class="node c-gray" onclick="sendPrompt('How does the Testimonial component animate between clients?')">
+          <rect x="310" y="215" width="140" height="38" rx="4" stroke-width="0.5"/>
+          <text class="th" x="380" y="234" text-anchor="middle" dominant-baseline="central">TestimonialItem</text>
+        </g>
+
+        <g class="node c-gray" onclick="sendPrompt('How does the pricing pill indicator use layoutId?')">
+          <rect x="450" y="215" width="140" height="38" rx="4" stroke-width="0.5"/>
+          <text class="th" x="520" y="234" text-anchor="middle" dominant-baseline="central">PricingCard</text>
+        </g>
+
+        <!-- MarqueeFooter at bottom -->
+        <line x1="340" y1="253" x2="340" y2="285" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+        <line x1="100" y1="285" x2="580" y2="285" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+        <line x1="340" y1="285" x2="340" y2="302" stroke="var(--color-border-secondary)" stroke-width="0.5" marker-end="url(#arr)"/>
+
+        <g class="node c-pink" onclick="sendPrompt('How is the MarqueeFooter built with infinite CSS animation?')">
+          <rect x="210" y="302" width="260" height="48" rx="4" stroke-width="0.5"/>
+          <text class="th" x="340" y="320" text-anchor="middle" dominant-baseline="central">MarqueeFooter</text>
+          <text class="ts" x="340" y="337" text-anchor="middle">Start a Project · Infinite CSS · Lenis</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="section-label" style="margin-top:20px">User Journey Flow</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-num">01</div>
+        <div class="flow-name">Hero</div>
+        <div class="flow-desc">Live clock anchors user in Jakarta time. Lenis makes first scroll feel weighted.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">02</div>
+        <div class="flow-name">Services</div>
+        <div class="flow-desc">Hover-dim reveals micro-copy. Text lines stagger in on scroll entry.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">03</div>
+        <div class="flow-name">Gallery</div>
+        <div class="flow-desc">Vertical scroll converts to horizontal. GSAP pins, Framer translates.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">04</div>
+        <div class="flow-name">Proof</div>
+        <div class="flow-desc">Testimonials tab-switch in &lt;150ms via Zustand. No layout shift.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">05</div>
+        <div class="flow-name">Pricing</div>
+        <div class="flow-desc">Toggle slides layoutId pill. Cards morph via Framer layout prop.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">06</div>
+        <div class="flow-name">CTA</div>
+        <div class="flow-desc">Marquee loop creates urgency. Lenis smoothly terminates scroll.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: SECRET SAUCE -->
+  <div id="p4" class="panel">
+    <div class="section-label">Visual Secret Sauce</div>
+    <div class="secret-grid">
+      <div class="secret-card">
+        <div class="secret-card-head">Film Grain — Global Noise Overlay</div>
+        <div class="secret-card-body">
+          <div class="grain-preview">
+            <span class="grain-label">Grain Active</span>
+          </div>
+          <div class="code-block"><span class="cm">/* globals.css — applied once on body */</span>
+<span class="kw">body</span>::<span class="fn">after</span> {
+  content: <span class="str">''</span>;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.035; <span class="cm">/* subtle */</span>
+  background-image:
+    url(<span class="str">"data:image/svg+xml,..."</span>);
+  <span class="cm">/* SVG feTurbulence grain */</span>
+  animation: grain 0.5s
+    steps(1) infinite;
+}
+<span class="kw">@keyframes</span> grain {
+  0%  { transform: translate(0,0)  }
+  20% { transform: translate(-2%,-2%) }
+  40% { transform: translate(2%, 2%) }
+  60% { transform: translate(-1%, 2%) }
+  80% { transform: translate(1%,-1%) }
+  100%{ transform: translate(0,0)  }
+}</div>
+        </div>
+      </div>
+
+      <div class="secret-card">
+        <div class="secret-card-head">Floating 3D Asset — Organic Motion</div>
+        <div class="secret-card-body">
+          <div class="float-preview">
+            <div class="float-obj"></div>
+          </div>
+          <div class="code-block"><span class="cm">// FloatingAsset.tsx</span>
+<span class="kw">const</span> floatVariants = {
+  animate: {
+    x: [0, 12, -6, 14, 0],
+    y: [0,-18,-8,-22, 0],
+    rotate:[0, 5,-3, 7, 0],
+    scale: [1,1.04,0.97,1.02,1],
+    transition: {
+      duration: 6,
+      ease: <span class="str">"easeInOut"</span>,
+      repeat: Infinity,
+      <span class="cm">// Key: non-linear timing</span>
+      times:[0,.25,.5,.75,1],
+      repeatType: <span class="str">"mirror"</span>
+    }
+  }
+};
+<span class="cm">// Wrap Three.js canvas in motion.div</span>
+<span class="cm">// Apply floatVariants.animate</span>
+<span class="cm">// Add useSpring for mouse parallax</span></div>
+        </div>
+      </div>
+
+      <div class="secret-card">
+        <div class="secret-card-head">Marquee Footer — Infinite Loop</div>
+        <div class="secret-card-body">
+          <div class="code-block"><span class="cm">/* CSS — no JS needed */</span>
+<span class="kw">.track</span> {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 18s
+    linear infinite;
+}
+<span class="kw">@keyframes</span> marquee {
+  <span class="kw">from</span> { transform: translateX(0) }
+  <span class="kw">to</span>   { transform: translateX(-50%) }
+}
+<span class="cm">/* Duplicate content once = seamless */</span>
+<span class="cm">/* Hover: animation-play-state:paused */</span>
+<span class="cm">/* Lenis: no conflict, pure CSS */</span>
+
+<span class="cm">/* Brutalist scale */</span>
+<span class="kw">.marquee-text</span> {
+  font-size: clamp(3rem,8vw,7rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+}</div>
+        </div>
+      </div>
+
+      <div class="secret-card">
+        <div class="secret-card-head">Pricing Toggle — layoutId Magic</div>
+        <div class="secret-card-body">
+          <div class="code-block"><span class="cm">// The trick: shared layoutId pill</span>
+<span class="kw">const</span> [plan, setPlan] =
+  <span class="fn">useState</span>(<span class="str">"monthly"</span>);
+
+<span class="cm">// Toggle track:</span>
+{[<span class="str">"monthly"</span>,<span class="str">"annual"</span>].<span class="fn">map</span>(p =&gt; (
+  &lt;button onClick={() =&gt; <span class="fn">setPlan</span>(p)}&gt;
+    {plan === p &amp;&amp; (
+      &lt;motion.div
+        layoutId=<span class="str">"pill"</span>
+        className=<span class="str">"indicator"</span>
+        transition={{
+          type: <span class="str">"spring"</span>,
+          stiffness: 400,
+          damping: 30
+        }}
+      /&gt;
+    )}
+    {p}
+  &lt;/button&gt;
+))}
+
+<span class="cm">// Cards: use layout prop to morph</span>
+<span class="cm">// height when price text changes</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function toggleBlock(head) {
+  const body = head.nextElementSibling;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+}
+</script>
+</body>
+</html>
